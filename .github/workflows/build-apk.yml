@@ -1,4 +1,3 @@
-
 name: Build Iraqi Curriculum Library APK
 
 on:
@@ -32,18 +31,45 @@ jobs:
           channel: stable
           cache: true
 
-      # The source archive is the single source of truth for the app files.
-      - name: Restore complete project from source archive
+      - name: Restore or detect project source
         shell: bash
         run: |
-          if [ ! -f iraqi_curriculum_library_source.zip ]; then
-            echo "ERROR: Upload iraqi_curriculum_library_source.zip to the repository root."
-            exit 1
+          set -euo pipefail
+
+          # Case 1: project files were already extracted and committed.
+          if [ -f pubspec.yaml ] && [ -f lib/main.dart ]; then
+            echo "Project source files already exist in repository root."
+          else
+            # Case 2: find the source ZIP even if the browser renamed it
+            # (for example, iraqi_curriculum_library_source (1).zip).
+            ARCHIVE=""
+            while IFS= read -r -d '' candidate; do
+              if unzip -Z1 "$candidate" | grep -qx 'pubspec.yaml' \
+                 && unzip -Z1 "$candidate" | grep -qx 'lib/main.dart' \
+                 && unzip -Z1 "$candidate" | grep -qx 'tool/configure_android_gradle.py' \
+                 && unzip -Z1 "$candidate" | grep -qx 'tool/configure_android_manifest.py'; then
+                ARCHIVE="$candidate"
+                break
+              fi
+            done < <(find . -maxdepth 3 -type f -iname '*.zip' -not -path './.git/*' -print0)
+
+            if [ -z "$ARCHIVE" ]; then
+              echo "ERROR: Could not find the project source."
+              echo "Upload iraqi_curriculum_library_source.zip directly to the repository ROOT, then Commit changes."
+              echo "Files currently visible in repository root:"
+              ls -la
+              exit 1
+            fi
+
+            echo "Restoring source from: $ARCHIVE"
+            unzip -oq "$ARCHIVE" -d .
           fi
-          unzip -oq iraqi_curriculum_library_source.zip -d .
+
           test -f pubspec.yaml
           test -f lib/main.dart
-          echo "Project source restored."
+          test -f tool/configure_android_gradle.py
+          test -f tool/configure_android_manifest.py
+          echo "Project source is ready."
 
       - name: Show Flutter version
         run: flutter --version
@@ -60,7 +86,7 @@ jobs:
       - name: Configure Android internet and notification permissions
         run: python3 tool/configure_android_manifest.py
 
-      - name: Clean old build files
+      - name: Clean project
         run: flutter clean
 
       - name: Get dependencies
