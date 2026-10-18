@@ -1,3 +1,4 @@
+```yaml
 name: Build Iraqi Curriculum Library APK
 
 on:
@@ -31,48 +32,45 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Restore updated project source when an archive is present
+      - name: Restore updated project source
         shell: bash
         run: |
           set -euo pipefail
-          ARCHIVE=""
-          if [ -f "iraqi_curriculum_library_source.zip" ]; then
-            ARCHIVE="iraqi_curriculum_library_source.zip"
-          else
-            while IFS= read -r -d '' candidate; do
-              if unzip -Z1 "$candidate" | grep -qx 'pubspec.yaml' \
-                 && unzip -Z1 "$candidate" | grep -qx 'lib/main.dart' \
-                 && unzip -Z1 "$candidate" | grep -qx 'tool/configure_android_gradle.py' \
-                 && unzip -Z1 "$candidate" | grep -qx 'tool/configure_android_manifest.py'; then
-                ARCHIVE="$candidate"
-                break
-              fi
-            done < <(find . -maxdepth 3 -type f -iname '*.zip' -not -path './.git/*' -print0)
-          fi
 
-          if [ -n "$ARCHIVE" ]; then
-            echo "Restoring project source from: $ARCHIVE"
-            SRC="$RUNNER_TEMP/iraqi_library_source"
-            rm -rf "$SRC"
-            mkdir -p "$SRC"
-            unzip -oq "$ARCHIVE" -d "$SRC"
-            rsync -a --delete "$SRC/lib/" ./lib/
-            rsync -a --delete "$SRC/tool/" ./tool/
-            cp "$SRC/pubspec.yaml" ./pubspec.yaml
-            if [ -f "$SRC/README_AR.md" ]; then cp "$SRC/README_AR.md" ./README_AR.md; fi
-          elif [ -f pubspec.yaml ] && [ -f lib/main.dart ]; then
-            echo "No source archive found; using project files already in the repository."
-          else
-            echo "ERROR: Source project not found. Upload iraqi_curriculum_library_source.zip to the repository root."
-            ls -la
+          ARCHIVE="iraqi_curriculum_library_bottom_nav_persistence_fixed.zip"
+
+          if [ ! -f "$ARCHIVE" ]; then
+            echo "ERROR: Required updated project ZIP not found: $ARCHIVE"
+            echo "Upload the updated ZIP to the repository root."
+            find . -maxdepth 3 -type f -iname '*.zip' \
+              -not -path './.git/*' -print
             exit 1
           fi
 
-          test -f pubspec.yaml
-          test -f lib/main.dart
-          test -f tool/configure_android_gradle.py
-          test -f tool/configure_android_manifest.py
-          echo "Project source is ready."
+          echo "Restoring updated source from $ARCHIVE"
+
+          SRC="$RUNNER_TEMP/iraqi_library_source"
+          rm -rf "$SRC"
+          mkdir -p "$SRC"
+
+          unzip -tq "$ARCHIVE"
+          unzip -oq "$ARCHIVE" -d "$SRC"
+
+          test -f "$SRC/pubspec.yaml"
+          test -f "$SRC/lib/main.dart"
+          test -f "$SRC/tool/configure_android_gradle.py"
+          test -f "$SRC/tool/configure_android_manifest.py"
+
+          rsync -a --delete "$SRC/lib/" ./lib/
+          rsync -a --delete "$SRC/tool/" ./tool/
+
+          cp "$SRC/pubspec.yaml" ./pubspec.yaml
+
+          if [ -f "$SRC/README_AR.md" ]; then
+            cp "$SRC/README_AR.md" ./README_AR.md
+          fi
+
+          echo "Updated project source restored successfully."
 
       - name: Show Flutter version
         run: flutter --version
@@ -80,13 +78,17 @@ jobs:
       - name: Recreate Android project from clean template
         shell: bash
         run: |
+          set -euo pipefail
           rm -rf android
-          flutter create --platforms=android --project-name=iraqi_curriculum_library --org=com.school.app .
+          flutter create \
+            --platforms=android \
+            --project-name=iraqi_curriculum_library \
+            --org=com.school.app .
 
       - name: Configure Android Gradle
         run: python3 tool/configure_android_gradle.py
 
-      - name: Configure Android internet and notification permissions
+      - name: Configure Android permissions
         run: python3 tool/configure_android_manifest.py
 
       - name: Clean project
@@ -105,12 +107,16 @@ jobs:
       - name: Verify APK exists
         shell: bash
         run: |
+          set -euo pipefail
           APK="build/app/outputs/flutter-apk/app-release.apk"
+
           if [ ! -s "$APK" ]; then
             echo "ERROR: APK was not created."
             exit 1
           fi
+
           ls -lh "$APK"
+          sha256sum "$APK"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -119,4 +125,4 @@ jobs:
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 14
-
+```
