@@ -1,1 +1,123 @@
 
+name: Build Iraqi Curriculum Library APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter stable
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Restore updated project source when an archive is present
+        shell: bash
+        run: |
+          set -euo pipefail
+          ARCHIVE=""
+          if [ -f "iraqi_curriculum_library_source.zip" ]; then
+            ARCHIVE="iraqi_curriculum_library_source.zip"
+          else
+            while IFS= read -r -d '' candidate; do
+              if unzip -Z1 "$candidate" | grep -qx 'pubspec.yaml' \
+                 && unzip -Z1 "$candidate" | grep -qx 'lib/main.dart' \
+                 && unzip -Z1 "$candidate" | grep -qx 'tool/configure_android_gradle.py' \
+                 && unzip -Z1 "$candidate" | grep -qx 'tool/configure_android_manifest.py'; then
+                ARCHIVE="$candidate"
+                break
+              fi
+            done < <(find . -maxdepth 3 -type f -iname '*.zip' -not -path './.git/*' -print0)
+          fi
+
+          if [ -n "$ARCHIVE" ]; then
+            echo "Restoring project source from: $ARCHIVE"
+            SRC="$RUNNER_TEMP/iraqi_library_source"
+            rm -rf "$SRC"
+            mkdir -p "$SRC"
+            unzip -oq "$ARCHIVE" -d "$SRC"
+            rsync -a --delete "$SRC/lib/" ./lib/
+            rsync -a --delete "$SRC/tool/" ./tool/
+            cp "$SRC/pubspec.yaml" ./pubspec.yaml
+            if [ -f "$SRC/README_AR.md" ]; then cp "$SRC/README_AR.md" ./README_AR.md; fi
+          elif [ -f pubspec.yaml ] && [ -f lib/main.dart ]; then
+            echo "No source archive found; using project files already in the repository."
+          else
+            echo "ERROR: Source project not found. Upload iraqi_curriculum_library_source.zip to the repository root."
+            ls -la
+            exit 1
+          fi
+
+          test -f pubspec.yaml
+          test -f lib/main.dart
+          test -f tool/configure_android_gradle.py
+          test -f tool/configure_android_manifest.py
+          echo "Project source is ready."
+
+      - name: Show Flutter version
+        run: flutter --version
+
+      - name: Recreate Android project from clean template
+        shell: bash
+        run: |
+          rm -rf android
+          flutter create --platforms=android --project-name=iraqi_curriculum_library --org=com.school.app .
+
+      - name: Configure Android Gradle
+        run: python3 tool/configure_android_gradle.py
+
+      - name: Configure Android internet and notification permissions
+        run: python3 tool/configure_android_manifest.py
+
+      - name: Clean project
+        run: flutter clean
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Analyze Dart code
+        run: flutter analyze --no-pub
+        continue-on-error: true
+
+      - name: Build release APK
+        run: flutter build apk --release
+
+      - name: Verify APK exists
+        shell: bash
+        run: |
+          APK="build/app/outputs/flutter-apk/app-release.apk"
+          if [ ! -s "$APK" ]; then
+            echo "ERROR: APK was not created."
+            exit 1
+          fi
+          ls -lh "$APK"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: iraqi-curriculum-library-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
+
