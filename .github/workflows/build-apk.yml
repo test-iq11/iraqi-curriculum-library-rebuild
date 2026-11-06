@@ -1,145 +1,112 @@
-name: Build Iraqi Curriculum Library
+name: Build Iraqi Curriculum Library APK
 
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
-      - master
+    branches: [main, master]
+    paths:
+      - '*.zip'
+      - '.github/workflows/build-apk.yml'
 
 permissions:
   contents: read
 
 jobs:
-  build:
-    name: Analyze and Build Android
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-
+  android-apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java 17
+      - name: Restore project from ZIP (no manual extraction needed)
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$GITHUB_WORKSPACE"
+          PROJECT="$RUNNER_TEMP/iraqi_curriculum_library_source"
+          mkdir -p "$PROJECT"
+          # Prefer the versioned release archive. If only a legacy valid
+          # archive exists, accept it as a fallback without requiring renaming.
+          ARCHIVE=""
+          if [ -f "$ROOT/iraqi_curriculum_library_v1.2.0.zip" ]; then
+            ARCHIVE="$ROOT/iraqi_curriculum_library_v1.2.0.zip"
+          fi
+          while [ -z "$ARCHIVE" ] && IFS= read -r candidate; do
+            if unzip -Z1 "$candidate" | grep -qx 'pubspec.yaml' && \
+               unzip -Z1 "$candidate" | grep -qx 'lib/main.dart' && \
+               unzip -Z1 "$candidate" | grep -qx 'tool/configure_android_gradle.py' && \
+               unzip -Z1 "$candidate" | grep -qx 'tool/configure_android_manifest.py'; then
+              ARCHIVE="$candidate"
+              break
+            fi
+          done < <(find "$ROOT" -maxdepth 1 -type f \
+            \( -name 'iraqi_curriculum_library_v*.zip' -o -name 'iraqi_curriculum_library_source.zip' -o -name '*.zip' \) \
+            -printf '%T@ %p\n' | sort -nr | cut -d' ' -f2-)
+
+          if [ -z "$ARCHIVE" ]; then
+            echo '::error::Upload the complete Iraqi curriculum library ZIP into the repository root.'
+            ls -lah "$ROOT"
+            exit 1
+          fi
+          echo "Using source archive: $ARCHIVE"
+          unzip -q "$ARCHIVE" -d "$PROJECT"
+          test -f "$PROJECT/pubspec.yaml"
+          test -f "$PROJECT/lib/main.dart"
+          test -f "$PROJECT/lib/screens/pdf_reader_screen.dart"
+          echo "PROJECT_DIR=$PROJECT" >> "$GITHUB_ENV"
+          echo "ZIP_SOURCE=$ARCHIVE" >> "$GITHUB_ENV"
+
+      - name: Install Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: '17'
 
-      - name: Verify project ZIP
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          ZIP_FILE="iraqi_curriculum_library_storage_init_fixed.zip"
-
-          if [ ! -f "$ZIP_FILE" ]; then
-            echo "::error::Project ZIP not found: $ZIP_FILE"
-            echo "ZIP files available in repository:"
-            find . -maxdepth 3 -type f -iname "*.zip" -print
-            exit 1
-          fi
-
-          echo "Found project ZIP: $ZIP_FILE"
-
-      - name: Extract project
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          rm -rf extracted_project
-          mkdir -p extracted_project
-          unzip -q -o iraqi_curriculum_library_storage_init_fixed.zip \
-            -d extracted_project
-
-          PUBSPEC="$(find extracted_project -name pubspec.yaml \
-            -type f -print -quit)"
-
-          if [ -z "$PUBSPEC" ]; then
-            echo "::error::pubspec.yaml was not found inside the ZIP."
-            find extracted_project -maxdepth 3 -type f | head -100
-            exit 1
-          fi
-
-          PROJECT_DIR="$(dirname "$PUBSPEC")"
-          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-
-          test -f "$PROJECT_DIR/tool/configure_android_gradle.py"
-          test -f "$PROJECT_DIR/tool/configure_android_manifest.py"
-
-          echo "Flutter project found at: $PROJECT_DIR"
-          ls -la "$PROJECT_DIR"
-
-      - name: Set up Flutter
+      - name: Install Flutter matching pdfrx
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: '3.47.0'
           cache: true
 
-      - name: Show Flutter version
-        run: flutter --version
-
-      - name: Recreate Android project from clean template
+      - name: Create Android host files
         working-directory: ${{ env.PROJECT_DIR }}
         shell: bash
         run: |
           set -euo pipefail
-          rm -rf android
-          flutter create --platforms=android \
-            --project-name=iraqi_curriculum_library \
-            --org=com.school.app .
+          flutter --version
+          flutter create --platforms=android --project-name=iraqi_curriculum_library --org=com.school.app .
+          python3 tool/configure_android_gradle.py
+          python3 tool/configure_android_manifest.py
 
-      - name: Configure Android Gradle (desugaring, SDK, disable R8 shrink)
-        working-directory: ${{ env.PROJECT_DIR }}
-        run: python3 tool/configure_android_gradle.py
-
-      - name: Configure Android permissions and notification receivers
-        working-directory: ${{ env.PROJECT_DIR }}
-        run: python3 tool/configure_android_manifest.py
-
-      - name: Install dependencies
+      - name: Resolve dependencies
         working-directory: ${{ env.PROJECT_DIR }}
         run: flutter pub get
 
-      - name: Analyze Flutter code
+      - name: Analyze source
         working-directory: ${{ env.PROJECT_DIR }}
-        shell: bash
-        run: |
-          set +e
-          flutter analyze --no-pub \
-            --no-fatal-infos \
-            --no-fatal-warnings
-          ANALYZE_EXIT=$?
-          set -e
+        run: flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
 
-          if [ "$ANALYZE_EXIT" -ne 0 ]; then
-            echo "::warning::Flutter analyze reported errors. Continuing to build so compilation can be checked."
-          fi
+      - name: Run automated tests
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: flutter test --no-pub --reporter expanded
 
       - name: Build release APK
         working-directory: ${{ env.PROJECT_DIR }}
         run: flutter build apk --release
 
-      - name: Verify APK
-        working-directory: ${{ env.PROJECT_DIR }}
+      - name: Verify APK was generated
         shell: bash
         run: |
           set -euo pipefail
-
-          APK="build/app/outputs/flutter-apk/app-release.apk"
-
-          if [ ! -f "$APK" ]; then
-            echo "::error::Release APK was not generated."
-            exit 1
-          fi
-
+          APK="$PROJECT_DIR/build/app/outputs/flutter-apk/app-release.apk"
+          test -s "$APK"
           ls -lh "$APK"
 
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: iraqi-curriculum-library-apk
+          name: iraqi-curriculum-library-apk-v1.2.0
           path: ${{ env.PROJECT_DIR }}/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
-          retention-days: 14
-
+          retention-days: 21
