@@ -1,11 +1,11 @@
-name: Build Iraqi Library User + Manager APKs
+name: Build Iraqi Library User + Manager APKs (auto ZIP)
 
 on:
   workflow_dispatch:
   push:
     branches: [main, master]
     paths:
-      - 'iraqi_library_dual_v2.5.0.zip'
+      - 'iraqi_library_dual_v*.zip'
       - '.github/workflows/build-dual-apk.yml'
 
 permissions:
@@ -23,9 +23,28 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ZIP="$GITHUB_WORKSPACE/iraqi_library_dual_v2.5.0.zip"
-          test -s "$ZIP" || { echo '::error::Upload iraqi_library_dual_v2.5.0.zip to repository root WITHOUT extracting'; exit 1; }
+          # Detect the project archive in the repository root automatically.
+          # Only one version can be present to prevent building an old project.
+          mapfile -d '' -t PROJECT_ZIPS < <(find "$GITHUB_WORKSPACE" -maxdepth 1 -type f -name 'iraqi_library_dual_v*.zip' -print0)
+          if [[ "${#PROJECT_ZIPS[@]}" -eq 0 ]]; then
+            echo '::error::No iraqi_library_dual_v*.zip in repository root. Upload the ZIP without extracting it.'
+            echo 'Files in repository root:'
+            ls -lah "$GITHUB_WORKSPACE"
+            exit 1
+          fi
+          if [[ "${#PROJECT_ZIPS[@]}" -gt 1 ]]; then
+            echo '::error::Multiple Iraqi library project ZIP files found. Keep exactly ONE project ZIP in repository root:'
+            printf '  %s\n' "${PROJECT_ZIPS[@]}"
+            exit 1
+          fi
+          ZIP="${PROJECT_ZIPS[0]}"
+          echo "Selected project archive: $(basename "$ZIP")"
+          if [[ ! -s "$ZIP" ]]; then
+            echo "::error::Project ZIP is empty: $(basename "$ZIP")"
+            exit 1
+          fi
           mkdir -p "$RUNNER_TEMP/iraqi_library"
+          unzip -tq "$ZIP" >/dev/null || { echo '::error::The project ZIP is damaged'; exit 1; }
           unzip -q "$ZIP" -d "$RUNNER_TEMP/iraqi_library"
           cd "$RUNNER_TEMP/iraqi_library"
           test -s pubspec.yaml
