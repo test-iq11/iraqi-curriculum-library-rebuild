@@ -1,111 +1,107 @@
-name: Build Iraqi Curriculum Library v1.3.0 - Exact HTML UI
+name: Build Iraqi Library User + Manager APKs
 
 on:
   workflow_dispatch:
   push:
     branches: [main, master]
     paths:
-      - 'iraqi_curriculum_library_v1.3.0.zip'
-      - '.github/workflows/build-apk.yml'
+      - 'iraqi_library_dual_v2.0.zip'
+      - '.github/workflows/build-dual-apk.yml'
+      - 'data/library.json'
 
 permissions:
   contents: read
 
 jobs:
-  android-apk:
+  build:
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
+    timeout-minutes: 150
     steps:
-      - name: Check out repository with ZIP kept compressed
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Extract exactly the v1.3.0 library archive on runner
+      - name: Extract the project ZIP on runner only
         shell: bash
         run: |
           set -euo pipefail
-          ARCHIVE="$GITHUB_WORKSPACE/iraqi_curriculum_library_v1.3.0.zip"
-          if [[ ! -s "$ARCHIVE" ]]; then
-            echo '::error::Missing iraqi_curriculum_library_v1.3.0.zip at repository root. Upload it without extracting.'
-            ls -lah "$GITHUB_WORKSPACE"
-            exit 1
-          fi
-          PROJECT="$RUNNER_TEMP/iraqi_library_v130"
-          mkdir -p "$PROJECT"
-          unzip -q "$ARCHIVE" -d "$PROJECT"
-          for item in pubspec.yaml lib/main.dart lib/screens/html_library_shell.dart \
-            lib/screens/pdf_reader_screen.dart assets/library_ui.html \
-            assets/library_catalog.json tool/configure_android_gradle.py \
-            tool/configure_android_manifest.py; do
-            if [[ ! -s "$PROJECT/$item" ]]; then
-              echo "::error::Missing required file: $item"
-              exit 1
-            fi
-          done
-          export PROJECT
-          python3 - <<'PY'
-          import json,os,pathlib,re
-          p=pathlib.Path(os.environ['PROJECT'])
-          catalog=json.loads((p/'assets/library_catalog.json').read_text(encoding='utf-8'))
-          html=(p/'assets/library_ui.html').read_text(encoding='utf-8')
-          assert len(catalog)==157, 'Catalog does not have 157 books'
-          data=json.loads(re.search(r'const BOOKS=(\[.*?\]);\s*\n',html,re.S).group(1))
-          assert data==catalog, 'HTML and native catalog differ'
-          assert "openNativeFeature('downloads')" in html
-          assert "openNativeFeature('reviews')" in html
-          assert 'NativeLibrary.postMessage' in html
-          print('Verified: identical catalog in HTML and Flutter, 157 entries.')
-          PY
-          echo "PROJECT_DIR=$PROJECT" >> "$GITHUB_ENV"
+          ZIP="$GITHUB_WORKSPACE/iraqi_library_dual_v2.0.zip"
+          test -s "$ZIP" || { echo '::error::Upload iraqi_library_dual_v2.0.zip to repository root WITHOUT extracting'; exit 1; }
+          mkdir -p "$RUNNER_TEMP/iraqi_library"
+          unzip -q "$ZIP" -d "$RUNNER_TEMP/iraqi_library"
+          cd "$RUNNER_TEMP/iraqi_library"
+          test -s pubspec.yaml
+          test -s lib/main_user.dart
+          test -s lib/main_admin.dart
+          python3 ci/verify_library.py
+          echo "PROJECT_DIR=$PWD" >> "$GITHUB_ENV"
 
-      - name: Install Java 17
+      - name: Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Install Flutter stable
+      - name: Flutter stable
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
-      - name: Generate Android project and configure notifications and Gradle
-        working-directory: ${{ env.PROJECT_DIR }}
+      - name: Generate Android and configure user/admin flavors
         shell: bash
+        working-directory: ${{ env.PROJECT_DIR }}
         run: |
           set -euo pipefail
           flutter --version
-          flutter create --platforms=android --project-name=iraqi_curriculum_library --org=com.school.app .
-          python3 tool/configure_android_gradle.py
-          python3 tool/configure_android_manifest.py
+          flutter create --platforms=android --project-name=iraqi_school_library_dual --org=com.school.app .
+          python3 tool/configure_android.py
+          rm -f test/widget_test.dart
 
-      - name: Resolve Dart and Android dependencies
+      - name: Resolve Flutter dependencies
         working-directory: ${{ env.PROJECT_DIR }}
         run: flutter pub get
 
-      - name: Analyze source and the exact HTML host
+      - name: Validate and test
         working-directory: ${{ env.PROJECT_DIR }}
-        run: flutter analyze --no-pub --no-fatal-infos --no-fatal-warnings
-
-      - name: Run library and HTML asset tests
-        working-directory: ${{ env.PROJECT_DIR }}
-        run: flutter test --no-pub --reporter expanded
-
-      - name: Build APK release
-        working-directory: ${{ env.PROJECT_DIR }}
-        run: flutter build apk --release
-
-      - name: Verify APK exists
         shell: bash
         run: |
           set -euo pipefail
-          test -s "$PROJECT_DIR/build/app/outputs/flutter-apk/app-release.apk"
-          ls -lh "$PROJECT_DIR/build/app/outputs/flutter-apk/app-release.apk"
+          flutter analyze --no-fatal-infos
+          flutter test --reporter expanded
 
-      - name: Upload installable APK
+      - name: Build two separate installable APKs
+        shell: bash
+        working-directory: ${{ env.PROJECT_DIR }}
+        env:
+          LIBRARY_BRANCH: ${{ vars.LIBRARY_BRANCH || github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          OWNER="${GITHUB_REPOSITORY%%/*}"
+          REPO="${GITHUB_REPOSITORY#*/}"
+          BRANCH="${LIBRARY_BRANCH:-main}"
+          COMMON=(--dart-define="LIBRARY_OWNER=$OWNER" --dart-define="LIBRARY_REPO=$REPO" --dart-define="LIBRARY_BRANCH=$BRANCH")
+          flutter build apk --release --flavor user -t lib/main_user.dart "${COMMON[@]}"
+          flutter build apk --release --flavor admin -t lib/main_admin.dart "${COMMON[@]}"
+          test -s build/app/outputs/flutter-apk/app-user-release.apk
+          test -s build/app/outputs/flutter-apk/app-admin-release.apk
+          mkdir -p "$RUNNER_TEMP/apk-output"
+          cp build/app/outputs/flutter-apk/app-user-release.apk "$RUNNER_TEMP/apk-output/iraqi_library_users.apk"
+          cp build/app/outputs/flutter-apk/app-admin-release.apk "$RUNNER_TEMP/apk-output/iraqi_library_manager.apk"
+          echo 'Two APKs built successfully:'
+          ls -lh "$RUNNER_TEMP/apk-output/"*.apk
+
+      - name: Upload user APK
         uses: actions/upload-artifact@v4
         with:
-          name: iraqi-library-v1.3.0-exact-html-apk
-          path: ${{ env.PROJECT_DIR }}/build/app/outputs/flutter-apk/app-release.apk
+          name: iraqi-library-users-apk
+          path: ${{ runner.temp }}/apk-output/iraqi_library_users.apk
           if-no-files-found: error
-          retention-days: 21
+          retention-days: 30
+
+      - name: Upload manager APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: iraqi-library-manager-apk
+          path: ${{ runner.temp }}/apk-output/iraqi_library_manager.apk
+          if-no-files-found: error
+          retention-days: 30
