@@ -54,6 +54,7 @@ jobs:
           python3 ci/verify_reader_speed.py
           python3 ci/verify_color_and_night.py
           python3 ci/verify_flutter_analyzer_regressions.py
+          python3 ci/verify_publish_and_reader_v254.py
           python3 ci/test_android_configuration.py
           echo "PROJECT_DIR=$PWD" >> "$GITHUB_ENV"
 
