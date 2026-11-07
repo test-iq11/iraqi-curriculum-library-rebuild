@@ -23,21 +23,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Detect the project archive in the repository root automatically.
-          # Only one version can be present to prevent building an old project.
-          mapfile -d '' -t PROJECT_ZIPS < <(find "$GITHUB_WORKSPACE" -maxdepth 1 -type f -name 'iraqi_library_dual_v*.zip' -print0)
+          # Automatically choose the highest version number in the repository root.
+          # Older ZIP versions may remain without aborting the build.
+          mapfile -d '' -t PROJECT_ZIPS < <(find "$GITHUB_WORKSPACE" -maxdepth 1 -type f -name 'iraqi_library_dual_v*.zip' -print0 | LC_ALL=C sort -z -V)
           if [[ "${#PROJECT_ZIPS[@]}" -eq 0 ]]; then
             echo '::error::No iraqi_library_dual_v*.zip in repository root. Upload the ZIP without extracting it.'
             echo 'Files in repository root:'
             ls -lah "$GITHUB_WORKSPACE"
             exit 1
           fi
+          ZIP="${PROJECT_ZIPS[${#PROJECT_ZIPS[@]}-1]}"
           if [[ "${#PROJECT_ZIPS[@]}" -gt 1 ]]; then
-            echo '::error::Multiple Iraqi library project ZIP files found. Keep exactly ONE project ZIP in repository root:'
-            printf '  %s\n' "${PROJECT_ZIPS[@]}"
-            exit 1
+            echo "::warning::Multiple project archives found; selected newest version: $(basename "$ZIP")"
           fi
-          ZIP="${PROJECT_ZIPS[0]}"
           echo "Selected project archive: $(basename "$ZIP")"
           if [[ ! -s "$ZIP" ]]; then
             echo "::error::Project ZIP is empty: $(basename "$ZIP")"
@@ -55,6 +53,7 @@ jobs:
           python3 ci/verify_restoration.py
           python3 ci/verify_reader_speed.py
           python3 ci/verify_color_and_night.py
+          python3 ci/verify_flutter_analyzer_regressions.py
           python3 ci/test_android_configuration.py
           echo "PROJECT_DIR=$PWD" >> "$GITHUB_ENV"
 
