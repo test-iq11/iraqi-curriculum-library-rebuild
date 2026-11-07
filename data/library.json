@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "revision": 12,
-  "updatedAt": "2026-11-07T03:00:29.887198Z",
+  "revision": 13,
+  "updatedAt": "2026-11-07T03:06:12.964103Z",
   "stages": [
     {
       "id": "stage-primary",
@@ -29,15 +29,6 @@
       "icon": "star",
       "order": 2,
       "visible": true
-    },
-    {
-      "id": "stage-1794020414464995-779397834",
-      "order": 3,
-      "name": "المرحلة المهنية",
-      "visible": true,
-      "description": "",
-      "color": "#5674AA",
-      "icon": "book"
     }
   ],
   "grades": [
