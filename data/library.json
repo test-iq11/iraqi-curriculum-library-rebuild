@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "revision": 9,
-  "updatedAt": "2026-11-07T02:22:32.032405Z",
+  "revision": 10,
+  "updatedAt": "2026-11-07T02:24:37.710065Z",
   "stages": [
     {
       "id": "stage-primary",
@@ -151,14 +151,6 @@
       "color": "#398DA0",
       "order": 14,
       "visible": true
-    },
-    {
-      "id": "grade-1794018143863007-66973290",
-      "order": 15,
-      "stageId": "stage-primary",
-      "name": "كتاب الحاسوب",
-      "visible": true,
-      "color": "#6484EA"
     }
   ],
   "subjects": [
