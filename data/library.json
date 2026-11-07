@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "revision": 16,
-  "updatedAt": "2026-11-07T14:35:18.089701Z",
+  "revision": 17,
+  "updatedAt": "2026-11-07T14:36:10.552208Z",
   "stages": [
     {
       "id": "stage-primary",
@@ -2357,6 +2357,14 @@
       "title": "كتاب الاقتصاد",
       "url": "https://drive.google.com/file/d/1ptkJfPsRbHwf9SGuhszTL6BJOlR-r52h/view",
       "order": 156,
+      "visible": true
+    },
+    {
+      "id": "book-1794062156486774-691600929",
+      "order": 157,
+      "subjectId": "subject-1794062059447163-218625313",
+      "title": "التربية الاسلامية",
+      "url": "https://drive.google.com/file/d/1idf1IS_S_XcSXCoDFb59tpaH41hyYEzu/view",
       "visible": true
     }
   ]
