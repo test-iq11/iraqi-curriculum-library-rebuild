@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "revision": 13,
-  "updatedAt": "2026-11-07T03:06:12.964103Z",
+  "revision": 14,
+  "updatedAt": "2026-11-07T14:27:23.065216Z",
   "stages": [
     {
       "id": "stage-primary",
@@ -29,6 +29,15 @@
       "icon": "star",
       "order": 2,
       "visible": true
+    },
+    {
+      "id": "stage-1794061629711168-1253459642",
+      "order": 3,
+      "name": "مرحلة المتميزين",
+      "visible": true,
+      "description": "",
+      "color": "#5674AA",
+      "icon": "science"
     }
   ],
   "grades": [
