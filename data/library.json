@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "revision": 10,
-  "updatedAt": "2026-11-07T02:24:37.710065Z",
+  "revision": 11,
+  "updatedAt": "2026-11-07T02:25:36.743373Z",
   "stages": [
     {
       "id": "stage-primary",
@@ -157,7 +157,7 @@
     {
       "id": "subject-001",
       "gradeId": "grade-01",
-      "name": "الإسلامية",
+      "name": "التربية الاسلامية",
       "order": 0,
       "visible": true
     },
