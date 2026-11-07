@@ -5,7 +5,7 @@ on:
   push:
     branches: [main, master]
     paths:
-      - 'iraqi_library_dual_v2.4.2.zip'
+      - 'iraqi_library_dual_v2.4.3.zip'
       - '.github/workflows/build-dual-apk.yml'
 
 permissions:
@@ -23,8 +23,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ZIP="$GITHUB_WORKSPACE/iraqi_library_dual_v2.4.2.zip"
-          test -s "$ZIP" || { echo '::error::Upload iraqi_library_dual_v2.4.2.zip to repository root WITHOUT extracting'; exit 1; }
+          ZIP="$GITHUB_WORKSPACE/iraqi_library_dual_v2.4.3.zip"
+          test -s "$ZIP" || { echo '::error::Upload iraqi_library_dual_v2.4.3.zip to repository root WITHOUT extracting'; exit 1; }
           mkdir -p "$RUNNER_TEMP/iraqi_library"
           unzip -q "$ZIP" -d "$RUNNER_TEMP/iraqi_library"
           cd "$RUNNER_TEMP/iraqi_library"
