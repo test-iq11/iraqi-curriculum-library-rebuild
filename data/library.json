@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "revision": 5,
-  "updatedAt": "2026-11-07T01:44:01.557479Z",
+  "revision": 6,
+  "updatedAt": "2026-11-07T01:54:46.112027Z",
   "stages": [
     {
       "id": "stage-primary",
@@ -29,6 +29,24 @@
       "icon": "star",
       "order": 2,
       "visible": true
+    },
+    {
+      "id": "stage-1794016456392868-734143892",
+      "order": 3,
+      "name": "المرحلة المهنية",
+      "visible": true,
+      "description": "",
+      "color": "#5274F1",
+      "icon": "book"
+    },
+    {
+      "id": "stage-1794016474337949-1296794372",
+      "order": 4,
+      "name": "مراحل المتميزين",
+      "visible": true,
+      "description": "",
+      "color": "#5274F1",
+      "icon": "book"
     }
   ],
   "grades": [
