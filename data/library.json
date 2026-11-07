@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "revision": 17,
-  "updatedAt": "2026-11-07T14:36:10.552208Z",
+  "revision": 18,
+  "updatedAt": "2026-11-07T14:42:17.434175Z",
   "stages": [
     {
       "id": "stage-primary",
@@ -29,24 +29,6 @@
       "icon": "star",
       "order": 2,
       "visible": true
-    },
-    {
-      "id": "stage-1794061629711168-1253459642",
-      "order": 3,
-      "name": "مرحلة المتميزين",
-      "visible": true,
-      "description": "",
-      "color": "#5674AA",
-      "icon": "science"
-    },
-    {
-      "id": "stage-1794061841391064-199567144",
-      "order": 4,
-      "name": "المرحلة المهنية",
-      "visible": true,
-      "description": "",
-      "color": "#A9644E",
-      "icon": "book"
     }
   ],
   "grades": [
@@ -169,60 +151,6 @@
       "color": "#398DA0",
       "order": 14,
       "visible": true
-    },
-    {
-      "id": "grade-1794061999112943-416050193",
-      "order": 15,
-      "stageId": "stage-1794061629711168-1253459642",
-      "name": "الاول متميزين",
-      "visible": true,
-      "color": "#4777F2",
-      "icon": "book"
-    },
-    {
-      "id": "grade-1794062007798525-1617015374",
-      "order": 16,
-      "stageId": "stage-1794061629711168-1253459642",
-      "name": "الثاني متميزين",
-      "visible": true,
-      "color": "#8955DA",
-      "icon": "book"
-    },
-    {
-      "id": "grade-1794062016073049-1726908795",
-      "order": 17,
-      "stageId": "stage-1794061629711168-1253459642",
-      "name": "الثالث متميزين",
-      "visible": true,
-      "color": "#EC5B89",
-      "icon": "book"
-    },
-    {
-      "id": "grade-1794062023796221-1595337359",
-      "order": 18,
-      "stageId": "stage-1794061629711168-1253459642",
-      "name": "الرابع متميزين",
-      "visible": true,
-      "color": "#F59E48",
-      "icon": "book"
-    },
-    {
-      "id": "grade-1794062032419453-2053932372",
-      "order": 19,
-      "stageId": "stage-1794061629711168-1253459642",
-      "name": "الخامس متميزين",
-      "visible": true,
-      "color": "#10B69A",
-      "icon": "book"
-    },
-    {
-      "id": "grade-1794062041087881-393492773",
-      "order": 20,
-      "stageId": "stage-1794061629711168-1253459642",
-      "name": "السادس متميزين",
-      "visible": true,
-      "color": "#19A7C4",
-      "icon": "book"
     }
   ],
   "subjects": [
@@ -1050,55 +978,6 @@
       "gradeId": "grade-15",
       "name": "الاقتصاد",
       "order": 117,
-      "visible": true
-    },
-    {
-      "id": "subject-1794062059447163-218625313",
-      "order": 118,
-      "gradeId": "grade-1794061999112943-416050193",
-      "name": "التربية الاسلامية",
-      "visible": true
-    },
-    {
-      "id": "subject-1794062066614669-1929930932",
-      "order": 119,
-      "gradeId": "grade-1794061999112943-416050193",
-      "name": "اللغة العربية",
-      "visible": true
-    },
-    {
-      "id": "subject-1794062076580208-42175418",
-      "order": 120,
-      "gradeId": "grade-1794061999112943-416050193",
-      "name": "العلوم",
-      "visible": true
-    },
-    {
-      "id": "subject-1794062085383155-1257627810",
-      "order": 121,
-      "gradeId": "grade-1794061999112943-416050193",
-      "name": "الرياضيات",
-      "visible": true
-    },
-    {
-      "id": "subject-1794062092572310-9110832",
-      "order": 122,
-      "gradeId": "grade-1794061999112943-416050193",
-      "name": "اللغة الانكليزية",
-      "visible": true
-    },
-    {
-      "id": "subject-1794062107319399-1367564996",
-      "order": 123,
-      "gradeId": "grade-1794061999112943-416050193",
-      "name": "الحاسوب",
-      "visible": true
-    },
-    {
-      "id": "subject-1794062114120394-471948936",
-      "order": 124,
-      "gradeId": "grade-1794061999112943-416050193",
-      "name": "اللغة الفرنسية",
       "visible": true
     }
   ],
@@ -2357,14 +2236,6 @@
       "title": "كتاب الاقتصاد",
       "url": "https://drive.google.com/file/d/1ptkJfPsRbHwf9SGuhszTL6BJOlR-r52h/view",
       "order": 156,
-      "visible": true
-    },
-    {
-      "id": "book-1794062156486774-691600929",
-      "order": 157,
-      "subjectId": "subject-1794062059447163-218625313",
-      "title": "التربية الاسلامية",
-      "url": "https://drive.google.com/file/d/1idf1IS_S_XcSXCoDFb59tpaH41hyYEzu/view",
       "visible": true
     }
   ]
