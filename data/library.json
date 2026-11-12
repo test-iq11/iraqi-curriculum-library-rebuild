@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "revision": 19,
-  "updatedAt": "2026-11-11T16:14:48.226833Z",
+  "revision": 20,
+  "updatedAt": "2026-11-12T17:01:54.732400Z",
   "stages": [
     {
       "id": "stage-primary",
@@ -160,6 +160,15 @@
       "color": "#398DA0",
       "order": 14,
       "visible": true
+    },
+    {
+      "id": "grade-1794500136876717-901194887",
+      "order": 15,
+      "stageId": "stage-1794413669696833-1795072687",
+      "name": "الاول متميزين",
+      "visible": true,
+      "color": "#7B65E9",
+      "icon": "book"
     }
   ],
   "subjects": [
@@ -988,6 +997,22 @@
       "name": "الاقتصاد",
       "order": 117,
       "visible": true
+    },
+    {
+      "id": "subject-1794500149611446-1882817426",
+      "order": 118,
+      "gradeId": "grade-1794500136876717-901194887",
+      "name": "التربية الاسلامية",
+      "visible": true,
+      "color": "#7B65E9"
+    },
+    {
+      "id": "subject-1794500310819517-1841282479",
+      "order": 119,
+      "gradeId": "grade-1794500136876717-901194887",
+      "name": "اللغة العربية",
+      "visible": true,
+      "color": "#7B65E9"
     }
   ],
   "books": [
@@ -2246,6 +2271,33 @@
       "url": "https://drive.google.com/file/d/1ptkJfPsRbHwf9SGuhszTL6BJOlR-r52h/view",
       "order": 156,
       "visible": true
+    },
+    {
+      "id": "book-1794500227400451-1342235027",
+      "order": 157,
+      "subjectId": "subject-1794500149611446-1882817426",
+      "title": "كتاب التربية الاسلامية",
+      "url": "https://drive.google.com/file/d/17ZD6sfjGSZAk_Nhv8hPRWzoIcpfn2tCv/view?usp=drivesdk",
+      "visible": true,
+      "color": "#7B65E9"
+    },
+    {
+      "id": "book-1794500334169740-1808982532",
+      "order": 158,
+      "subjectId": "subject-1794500310819517-1841282479",
+      "title": "كتاب اللغة العربية ج1",
+      "url": "https://drive.google.com/file/d/1QBq6_g2nd3ydDFan6UN-MXe4A5pEF1vY/view?usp=drivesdk",
+      "visible": true,
+      "color": "#7B65E9"
+    },
+    {
+      "id": "book-1794500391950927-148753474",
+      "order": 159,
+      "subjectId": "subject-1794500310819517-1841282479",
+      "title": "كتاب اللغة العربية ج2",
+      "url": "https://drive.google.com/file/d/1BCp3RGgNJ6KVpKw2_oCvp1dqQLlZ-r-p/view?usp=drivesdk",
+      "visible": true,
+      "color": "#7B65E9"
     }
   ]
 }
