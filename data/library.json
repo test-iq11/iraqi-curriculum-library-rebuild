@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "revision": 20,
-  "updatedAt": "2026-11-12T17:01:54.732400Z",
+  "revision": 21,
+  "updatedAt": "2026-11-15T20:52:24.377266Z",
   "stages": [
     {
       "id": "stage-primary",
@@ -38,6 +38,15 @@
       "color": "#7B65E9",
       "description": "",
       "icon": "pencil"
+    },
+    {
+      "id": "stage-1794775930568662-567011977",
+      "order": 4,
+      "name": "الدارسة المهنية",
+      "visible": true,
+      "color": "#8A9F36",
+      "description": "",
+      "icon": "book"
     }
   ],
   "grades": [
