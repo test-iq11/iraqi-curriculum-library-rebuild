@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "revision": 21,
-  "updatedAt": "2026-11-15T20:52:24.377266Z",
+  "revision": 22,
+  "updatedAt": "2026-11-16T18:14:36.237699Z",
   "stages": [
     {
       "id": "stage-primary",
@@ -177,6 +177,15 @@
       "name": "الاول متميزين",
       "visible": true,
       "color": "#7B65E9",
+      "icon": "book"
+    },
+    {
+      "id": "grade-1794804869929785-973711984",
+      "order": 16,
+      "stageId": "stage-1794775930568662-567011977",
+      "name": "الاول مهني",
+      "visible": true,
+      "color": "#4777F2",
       "icon": "book"
     }
   ],
